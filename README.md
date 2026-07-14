@@ -41,6 +41,7 @@ The mapping is deliberately mechanical. Two promotions want a judgment pass, kep
 ## Status — honest flags
 
 - **Built docs-derived from the FMG export shape and the [FMG wiki](https://github.com/Azgaar/Fantasy-Map-Generator/wiki).** The synthetic fixture covers every ruling (sentinels, removed entities, non-boolean port, diplomacy dedup, marker/note pairing, diacritics), but the converter has **NOT yet been run against a real exported map** — treat the first real export as a test.
+- **Mapper wire-proven 2026-07-14**: the fixture's 19-element bulk payload POSTed to a live OnlyWorlds world via `/api/v2/bulk` — 19/19 created with all cross-links resolved (`parent_location`, `primary_power`, `populations`, Relation/Event institution links) and `x_azgaar_*` extensions intact; then deleted, zero residue. The push used plain external `curl` with the emitted `--bulk` payload — the converter itself contains no network code, by design.
 - **Things I had to infer about the format** (verify against a real export, adjust if wrong):
   - `settings.populationRate` and `settings.urbanization` are the scale factors, and stored `burg.population` is in thousands-ish display units. If your numbers look off, trust `x_azgaar_population_raw`.
   - Campaign belligerents are read from `campaign.rival` (opposing state id); `start`/`end` are years, not links. Campaigns without a `name` are skipped.
