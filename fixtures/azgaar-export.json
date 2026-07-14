@@ -1,0 +1,239 @@
+{
+  "info": {
+    "version": "1.99.00",
+    "mapName": "Thornevale",
+    "seed": "482913",
+    "exportedAt": "2026-07-14T00:00:00.000Z"
+  },
+  "settings": {
+    "populationRate": 1000,
+    "urbanization": 1
+  },
+  "pack": {
+    "cultures": [
+      {
+        "i": 0,
+        "name": "Wildlands",
+        "type": ""
+      },
+      {
+        "i": 1,
+        "name": "Aldori",
+        "type": "Highland"
+      },
+      {
+        "i": 2,
+        "name": "Vešmar",
+        "type": "Nomadic"
+      }
+    ],
+    "burgs": [
+      {
+        "i": 0
+      },
+      {
+        "i": 1,
+        "name": "Aldor City",
+        "state": 1,
+        "culture": 1,
+        "capital": 1,
+        "port": 7,
+        "population": 24,
+        "x": 120,
+        "y": 90
+      },
+      {
+        "i": 2,
+        "name": "Saltmere",
+        "state": 1,
+        "culture": 1,
+        "capital": 0,
+        "port": 4,
+        "population": 8,
+        "x": 140,
+        "y": 110
+      },
+      {
+        "i": 3,
+        "name": "Downhollow",
+        "state": 2,
+        "culture": 2,
+        "capital": 0,
+        "port": 0,
+        "population": 2,
+        "x": 200,
+        "y": 60
+      },
+      {
+        "i": 4,
+        "name": "Weshelm Keep",
+        "state": 2,
+        "culture": 2,
+        "capital": 1,
+        "port": 0,
+        "population": 30,
+        "x": 210,
+        "y": 55
+      },
+      {
+        "i": 5,
+        "name": "Ghosttown",
+        "state": 2,
+        "culture": 2,
+        "capital": 0,
+        "port": 0,
+        "population": 5,
+        "removed": true
+      }
+    ],
+    "states": [
+      {
+        "i": 0,
+        "name": "Neutrals"
+      },
+      {
+        "i": 1,
+        "name": "Aldoria",
+        "fullName": "The Kingdom of Aldoria",
+        "form": "Monarchy",
+        "formName": "Kingdom",
+        "capital": 1,
+        "culture": 1,
+        "area": 4200,
+        "rural": 18000,
+        "urban": 3200,
+        "diplomacy": [
+          "x",
+          "x",
+          "Enemy"
+        ],
+        "campaigns": [
+          {
+            "name": "The Salt War",
+            "start": 511,
+            "end": 514,
+            "rival": 2
+          }
+        ]
+      },
+      {
+        "i": 2,
+        "name": "Weshelm",
+        "fullName": "The Weshelm Protectorate",
+        "form": "Republic",
+        "formName": "Protectorate",
+        "capital": 4,
+        "culture": 2,
+        "area": 2100,
+        "rural": 9000,
+        "urban": 1800,
+        "diplomacy": [
+          "x",
+          "Enemy",
+          "x",
+          "Suzerain"
+        ]
+      },
+      {
+        "i": 3,
+        "name": "Kestrel March",
+        "fullName": "The March of Kestrel",
+        "form": "Monarchy",
+        "formName": "Duchy",
+        "capital": 0,
+        "culture": 2,
+        "area": 800,
+        "rural": 3000,
+        "urban": 200,
+        "diplomacy": [
+          "x",
+          "Neutral",
+          "Vassal",
+          "x"
+        ]
+      }
+    ],
+    "provinces": [
+      {
+        "i": 0,
+        "name": ""
+      },
+      {
+        "i": 1,
+        "name": "Coastward",
+        "fullName": "Coastward Province",
+        "formName": "Province",
+        "state": 1,
+        "burg": 1
+      },
+      {
+        "i": 2,
+        "name": "Highreach",
+        "fullName": "Highreach Province",
+        "formName": "March",
+        "state": 2,
+        "burg": 4
+      }
+    ],
+    "religions": [
+      {
+        "i": 0,
+        "name": "No religion"
+      },
+      {
+        "i": 1,
+        "name": "The Tide Compact",
+        "type": "Organized",
+        "form": "Polytheism",
+        "deity": "Maren of the Deep",
+        "culture": 1
+      },
+      {
+        "i": 2,
+        "name": "Hearthfaith",
+        "type": "Folk",
+        "form": "Animism",
+        "deity": "The Hearth-Mother",
+        "culture": 2
+      }
+    ],
+    "rivers": [
+      {
+        "i": 0
+      },
+      {
+        "i": 3,
+        "name": "Saltrun",
+        "type": "River",
+        "length": 180,
+        "discharge": 42
+      }
+    ],
+    "markers": [
+      {
+        "i": 1,
+        "type": "Ruins",
+        "x": 155,
+        "y": 95
+      },
+      {
+        "i": 2,
+        "type": "Cave",
+        "x": 300,
+        "y": 220
+      }
+    ]
+  },
+  "notes": [
+    {
+      "id": "marker1",
+      "name": "The Drowned Chapel",
+      "legend": "<p>A tide-worn shrine to <b>Maren of the Deep</b>, submerged at each high water.</p>"
+    },
+    {
+      "id": "marker99",
+      "name": "Orphan Note",
+      "legend": "<p>No marker owns this.</p>"
+    }
+  ]
+}
