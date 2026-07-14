@@ -5,10 +5,10 @@ Convert an **[Azgaar Fantasy Map Generator](https://azgaar.github.io/Fantasy-Map
 | Azgaar | OnlyWorlds |
 |---|---|
 | state | **Institution** — `supertype` = government form (Monarchy…), `subtype` = form name (Kingdom…); capital + stats in description |
-| state diplomacy | **Relation** — strong ties only (Ally/Enemy/Rival, Vassal+Suzerain → one Vassalage), pairs deduped, both states linked |
+| state diplomacy | **Relation** — strong ties only (Ally/Enemy/Rival, Vassal+Suzerain → one Vassalage), pairs deduped, both states linked. Ally/Enemy/Rival ALSO fill the Institutions' native `allies`/`adversaries` links |
 | state campaigns | **Event** — named wars (`supertype` "War"), belligerent states linked |
 | province | **Location** — `supertype` "Administrative Region"; controlling state via `primary_power` |
-| burg | **Location** — `supertype` "Settlement"; `subtype` Capital / Port / City / Town / Village; parented to its province; scaled population + x/y kept |
+| burg | **Location** — `supertype` "Settlement"; `subtype` Capital / Port / City / Town / Village; parented to its province; its culture linked via `populations`; scaled population + x/y kept |
 | culture | **Collective** — `supertype` "Culture", `subtype` = culture type (Highland, Nomadic…) |
 | religion | **Institution** — `supertype` "Religion", `subtype` = type (Folk, Organized…); deity in description + `x_azgaar_deity` |
 | river | **Location** — `supertype` "Waterway"; length/discharge in description |

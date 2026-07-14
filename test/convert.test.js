@@ -113,6 +113,24 @@ test("diplomacy → strong ties only, pairs deduped, vassalage collapsed", () =>
   assert.ok(!rels.some((r) => r.x_azgaar_status === "Neutral"));
 });
 
+test("diplomacy also fills native Institution allies/adversaries (vassalage does not)", () => {
+  const items = mapAzgaar(loadFixture(), { mintId: seq() });
+  const name = (n) => items.find((i) => i.element.name === n).element;
+  const aldoria = name("Aldoria");
+  const weshelm = name("Weshelm");
+  const kestrel = name("Kestrel March");
+
+  // Aldoria–Weshelm are Enemies → adversaries both ways, no allies
+  assert.ok(aldoria.adversaries?.includes(weshelm.id));
+  assert.ok(weshelm.adversaries?.includes(aldoria.id));
+  assert.ok(!aldoria.allies?.includes(weshelm.id));
+
+  // Weshelm–Kestrel March is Vassalage → Relation only, NOT allies/adversaries
+  assert.ok(!weshelm.allies?.includes(kestrel.id));
+  assert.ok(!weshelm.adversaries?.includes(kestrel.id));
+  assert.ok(!kestrel.adversaries?.includes(weshelm.id));
+});
+
 test("links resolve to minted UUIDs inside the batch", () => {
   const items = mapAzgaar(loadFixture(), { mintId: seq() });
   const name = (n) => items.find((i) => i.element.name === n).element;
@@ -123,6 +141,13 @@ test("links resolve to minted UUIDs inside the batch", () => {
   assert.equal(name("Aldor City").parent_location, name("Coastward Province").id);
   // burg → state via primary_power
   assert.equal(name("Saltmere").primary_power, name("Aldoria").id);
+  // burg → its culture via the native populations link
+  const someBurg = items.find((i) => i.element.x_azgaar_type === "burg" && i.element.populations);
+  assert.ok(someBurg, "at least one burg links its culture via populations");
+  const cultureIds = items
+    .filter((i) => i.element.x_azgaar_type === "culture")
+    .map((i) => i.element.id);
+  assert.ok(someBurg.element.populations.every((id) => cultureIds.includes(id)));
 
   // event belligerents: both states resolved (aggressor + rival)
   const war = items.find((i) => i.type === "event").element;

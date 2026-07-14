@@ -142,6 +142,32 @@ export function mapAzgaar(map, opts = {}) {
     x_azgaar_version: info.version ?? null,
   });
 
+  // Pre-pass over diplomacy for the NATIVE Institution links (allies/adversaries).
+  // Ally → allies on both sides; Enemy/Rival → adversaries on both sides.
+  // Vassalage stays Relation-only (it's neither, and parent_institution would
+  // over-claim governance). The Relation elements below carry the full story.
+  const alliesOf = new Map();
+  const adversariesOf = new Map();
+  const addPair = (m, a, b) => {
+    if (!m.has(a)) m.set(a, new Set());
+    m.get(a).add(b);
+  };
+  for (const s of keptStates) {
+    const dip = s.diplomacy ?? [];
+    for (let j = 0; j < dip.length; j++) {
+      if (j === s.i || !keptStates.some((st) => st.i === j)) continue;
+      if (dip[j] === "Ally") {
+        addPair(alliesOf, s.i, j);
+        addPair(alliesOf, j, s.i);
+      } else if (dip[j] === "Enemy" || dip[j] === "Rival") {
+        addPair(adversariesOf, s.i, j);
+        addPair(adversariesOf, j, s.i);
+      }
+    }
+  }
+  const stateLinks = (m, i) =>
+    [...(m.get(i) ?? [])].map((id) => ref("state", id)).filter(Boolean);
+
   // --- states → Institution -------------------------------------------------
   for (const s of keptStates) {
     const burgCount = keptBurgs.filter((b) => b.state === s.i).length;
@@ -159,6 +185,8 @@ export function mapAzgaar(map, opts = {}) {
       description: desc,
       supertype: s.form || "",
       subtype: s.formName || "",
+      allies: stateLinks(alliesOf, s.i),
+      adversaries: stateLinks(adversariesOf, s.i),
       x_azgaar_id: s.i,
       x_azgaar_type: "state",
       x_azgaar_full_name: s.fullName ?? null,
@@ -284,6 +312,7 @@ export function mapAzgaar(map, opts = {}) {
       subtype,
       parent_location: provId ? ref("province", provId) : null,
       primary_power: ref("state", b.state),
+      populations: ref("culture", b.culture) ? [ref("culture", b.culture)] : null,
       x_azgaar_id: b.i,
       x_azgaar_type: "burg",
       x_azgaar_state: b.state || null,
