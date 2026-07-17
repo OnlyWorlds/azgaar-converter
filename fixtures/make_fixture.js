@@ -9,7 +9,7 @@
  * Run: node fixtures/make_fixture.js
  */
 
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,10 +21,19 @@ const map = {
     mapName: "Thornevale",
     seed: "482913",
     exportedAt: "2026-07-14T00:00:00.000Z",
+    // image-pixel canvas (maps lane R3/R10)
+    width: 400,
+    height: 300,
   },
+  // Projection block chosen so lon/lat map cleanly to pixels for the geometry
+  // tests: lonW=0,lonT=400 → x_fmg = lon; latN=300,latT=300 → y_fmg = 300 - lat,
+  // so after R3 inversion y_ow = lat. (pixel_x == lon, ow_y == lat.)
+  mapCoordinates: { latT: 300, latN: 300, latS: 0, lonT: 400, lonW: 0, lonE: 400 },
   settings: {
     populationRate: 1000,
     urbanization: 1.0,
+    distanceScale: 3,
+    distanceUnit: "mi",
   },
   pack: {
     // index 0 is the "Wildlands" sentinel — never an element
@@ -63,7 +72,9 @@ const map = {
         urban: 3200,
         // dip[0]=self-neutral placeholder region, dip[1]=self, dip[2]=Enemy of Weshelm
         diplomacy: ["x", "x", "Enemy"],
-        campaigns: [{ name: "The Salt War", start: 511, end: 514, rival: 2 }],
+        // Real 1.13x shape: attacker/defender ids. Shared war listed VERBATIM in
+        // both belligerents' arrays → must dedupe to ONE Event.
+        campaigns: [{ name: "The Salt War", start: 511, end: 514, attacker: 1, defender: 2 }],
       },
       {
         i: 2,
@@ -79,6 +90,12 @@ const map = {
         // Enemy of Aldoria (mutual → must dedupe to ONE Relation),
         // Suzerain over state 3 (vassalage)
         diplomacy: ["x", "Enemy", "x", "Suzerain"],
+        // The Salt War also listed here (shared-war dedupe test), plus a legacy
+        // `rival`-field campaign with no `end` (ongoing war, pre-attacker/defender).
+        campaigns: [
+          { name: "The Salt War", start: 511, end: 514, attacker: 1, defender: 2 },
+          { name: "The Old Feud", start: 300, rival: 1 },
+        ],
       },
       {
         i: 3,
@@ -133,3 +150,96 @@ const map = {
 const out = join(here, "azgaar-export.json");
 writeFileSync(out, JSON.stringify(map, null, 2) + "\n");
 console.log(`wrote ${out}`);
+
+// --- synthetic per-layer GeoJSON exports (maps lane R11) -------------------
+// Coordinates are lon/lat under the projection block above, so [lon,lat] maps to
+// pixel (lon, 300-lat) and OW point (lon, lat). Kept tiny + self-contained.
+const geojsonDir = join(here, "geojson");
+mkdirSync(geojsonDir, { recursive: true });
+
+// One zone polygon (~6 points) with a hatch color (→ flat-fallback in code) and
+// a Rebels type (non-Invasion → cyan fallback).
+const zones = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      properties: { id: 0, name: "The Riven Coast", type: "Rebels", color: "url(#hatch3)", cells: [1, 2, 3] },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [10, 10],
+            [60, 12],
+            [90, 50],
+            [70, 90],
+            [20, 80],
+            [8, 40],
+            [10, 10],
+          ],
+        ],
+      },
+    },
+  ],
+};
+
+// One river LineString whose properties.id === pack river .i (3) so the Zone
+// links to the river Location via x_azgaar_location_ref (R6).
+const rivers = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      properties: { id: 3, name: "Saltrun", type: "River" },
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [100, 100],
+          [140, 130],
+          [180, 150],
+          [220, 200],
+        ],
+      },
+    },
+  ],
+};
+
+// One road (group roads → default ON) and one trail (default OFF).
+const routes = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      properties: { id: 0, group: "roads", name: "The Old Road" },
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [30, 30],
+          [80, 60],
+          [130, 70],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: { id: 1, group: "trails", name: "Hunters' Trail" },
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [200, 40],
+          [230, 70],
+        ],
+      },
+    },
+  ],
+};
+
+for (const [label, data] of [
+  ["Thornevale Zones.geojson", zones],
+  ["Thornevale Rivers.geojson", rivers],
+  ["Thornevale Routes.geojson", routes],
+]) {
+  const p = join(geojsonDir, label);
+  writeFileSync(p, JSON.stringify(data, null, 2) + "\n");
+  console.log(`wrote ${p}`);
+}

@@ -3,11 +3,23 @@
     "version": "1.99.00",
     "mapName": "Thornevale",
     "seed": "482913",
-    "exportedAt": "2026-07-14T00:00:00.000Z"
+    "exportedAt": "2026-07-14T00:00:00.000Z",
+    "width": 400,
+    "height": 300
+  },
+  "mapCoordinates": {
+    "latT": 300,
+    "latN": 300,
+    "latS": 0,
+    "lonT": 400,
+    "lonW": 0,
+    "lonE": 400
   },
   "settings": {
     "populationRate": 1000,
-    "urbanization": 1
+    "urbanization": 1,
+    "distanceScale": 3,
+    "distanceUnit": "mi"
   },
   "pack": {
     "cultures": [
@@ -112,7 +124,8 @@
             "name": "The Salt War",
             "start": 511,
             "end": 514,
-            "rival": 2
+            "attacker": 1,
+            "defender": 2
           }
         ]
       },
@@ -132,6 +145,20 @@
           "Enemy",
           "x",
           "Suzerain"
+        ],
+        "campaigns": [
+          {
+            "name": "The Salt War",
+            "start": 511,
+            "end": 514,
+            "attacker": 1,
+            "defender": 2
+          },
+          {
+            "name": "The Old Feud",
+            "start": 300,
+            "rival": 1
+          }
         ]
       },
       {

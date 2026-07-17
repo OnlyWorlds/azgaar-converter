@@ -1,0 +1,54 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 0,
+        "name": "The Riven Coast",
+        "type": "Rebels",
+        "color": "url(#hatch3)",
+        "cells": [
+          1,
+          2,
+          3
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              10,
+              10
+            ],
+            [
+              60,
+              12
+            ],
+            [
+              90,
+              50
+            ],
+            [
+              70,
+              90
+            ],
+            [
+              20,
+              80
+            ],
+            [
+              8,
+              40
+            ],
+            [
+              10,
+              10
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

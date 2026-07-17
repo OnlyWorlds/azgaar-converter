@@ -1,0 +1,51 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 0,
+        "group": "roads",
+        "name": "The Old Road"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30,
+            30
+          ],
+          [
+            80,
+            60
+          ],
+          [
+            130,
+            70
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1,
+        "group": "trails",
+        "name": "Hunters' Trail"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200,
+            40
+          ],
+          [
+            230,
+            70
+          ]
+        ]
+      }
+    }
+  ]
+}

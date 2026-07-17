@@ -55,7 +55,7 @@ test("mapAzgaar: full constellation, sentinels + removed skipped", () => {
     construct: 1,
     institution: 5,
     relation: 2,
-    event: 1,
+    event: 2,
     location: 8,
     collective: 2,
   });
@@ -149,12 +149,22 @@ test("links resolve to minted UUIDs inside the batch", () => {
     .map((i) => i.element.id);
   assert.ok(someBurg.element.populations.every((id) => cultureIds.includes(id)));
 
-  // event belligerents: both states resolved (aggressor + rival)
-  const war = items.find((i) => i.type === "event").element;
-  assert.equal(war.name, "The Salt War");
+  // Campaigns, the REAL 1.13x shape (attacker/defender ids; shared wars listed
+  // verbatim in BOTH states' arrays — must dedupe to ONE Event):
+  const wars = items.filter((i) => i.type === "event").map((i) => i.element);
+  const saltWars = wars.filter((w) => w.name === "The Salt War");
+  assert.equal(saltWars.length, 1, "shared war dedupes to one Event");
+  const war = saltWars[0];
   assert.equal(war.institutions.length, 2);
   assert.ok(war.institutions.includes(name("Aldoria").id));
   assert.ok(war.institutions.includes(name("Weshelm").id));
+  assert.deepEqual(war.x_azgaar_states, [1, 2]);
+  assert.ok(war.description.includes("Aldoria") && war.description.includes("Weshelm"));
+  // legacy `rival` field still resolves belligerents; missing `end` = ongoing
+  const feud = wars.find((w) => w.name === "The Old Feud");
+  assert.ok(feud, "legacy-rival campaign still emitted");
+  assert.equal(feud.institutions.length, 2);
+  assert.ok(feud.end_date == null); // absent or null both mean ongoing
 
   // every element carries provenance + a string id
   for (const { element } of items) {
@@ -194,6 +204,16 @@ test("CLI end-to-end: export in, world folder + bulk payload out", () => {
 
   const world = JSON.parse(readFileSync(join(out, "world", "world.json"), "utf8"));
   assert.equal(world.name, "Thornevale");
+  // Atlas world discovery REQUIRES both id and name (live-tested 2026-07-14)
+  assert.equal(typeof world.id, "string");
+  assert.ok(world.id.length >= 32);
+
+  // Folder bodies carry type + timestamps (live-tested: without in-body `type`
+  // Atlas shows an EMPTY world); the API/bulk payload never carries them.
+  const locDir = join(out, "world", "elements", "location");
+  const sampleLoc = JSON.parse(readFileSync(join(locDir, readdirSync(locDir)[0]), "utf8"));
+  assert.equal(sampleLoc.type, "location");
+  assert.ok(sampleLoc.local_updated_at && sampleLoc.created_at);
 
   const locFiles = readdirSync(join(out, "world", "elements", "location"));
   assert.equal(locFiles.length, 8);
@@ -202,6 +222,6 @@ test("CLI end-to-end: export in, world folder + bulk payload out", () => {
 
   const bulk = JSON.parse(readFileSync(bulkPath, "utf8"));
   assert.ok(Array.isArray(bulk.items));
-  assert.equal(bulk.items.length, 19);
+  assert.equal(bulk.items.length, 20);
   assert.ok(bulk.items.every((i) => i.type && i.element && i.element.id));
 });

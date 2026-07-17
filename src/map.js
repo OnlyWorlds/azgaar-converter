@@ -48,6 +48,17 @@ export function htmlToText(html) {
  */
 const STRONG_DIPLOMACY = new Set(["Ally", "Enemy", "Rival", "Vassal", "Suzerain"]);
 
+/**
+ * Emblem image URL via armoria-api (Azgaar's own hosted heraldry renderer,
+ * github.com/Azgaar/armoria-api) for a coa spec — probed live 2026-07-14:
+ * accepts the exact `coa` object FMG exports carry. Only used behind the
+ * --heraldry opt-in, and only for states, out of politeness to a free API.
+ */
+function armoriaUrl(coa) {
+  if (!coa || typeof coa !== "object") return null;
+  return `https://armoria.herokuapp.com/png/300/?coa=${encodeURIComponent(JSON.stringify(coa))}`;
+}
+
 /** Burg subtype thresholds by real (scaled) population, in people. Documented in README. */
 const CITY_MIN = 20000; // >= this → City
 const TOWN_MIN = 5000; //  >= this → Town, below → Village
@@ -192,6 +203,13 @@ export function mapAzgaar(map, opts = {}) {
       x_azgaar_full_name: s.fullName ?? null,
       x_azgaar_capital_burg: s.capital || null,
       x_azgaar_culture: s.culture || null,
+      // structured heraldry spec (tinctures/division/charges/shield) — data,
+      // not an image; a render lane (Armoria code is MIT) can mint emblems later
+      x_azgaar_coa: s.coa && typeof s.coa === "object" ? s.coa : null,
+      // opt-in (--heraldry): emblem image via Azgaar's own hosted armoria-api,
+      // rendered from the state's coa spec. States only — 12-ish requests per
+      // world when a viewer loads them, polite to a free community API.
+      image_url: opts.heraldry ? armoriaUrl(s.coa) : null,
     });
   }
 
@@ -237,24 +255,55 @@ export function mapAzgaar(map, opts = {}) {
   }
 
   // --- state campaigns → Event (only named wars; belligerents linked) -------
+  // Real 1.13x exports carry `attacker`/`defender` state ids on a campaign
+  // (the `rival` field our docs-derived first pass expected does not appear
+  // on real exports — kept as a legacy fallback). A war shared between two
+  // states is listed VERBATIM in both states' campaign arrays: dedupe on the
+  // full identity (name+years+belligerents) and merge the owners, or the same
+  // war mints twice. start/end are years, not links — never treat as such;
+  // `end` is legitimately absent on ongoing wars.
+  const campaignsSeen = new Map();
   for (const s of keptStates) {
     for (const c of s.campaigns ?? []) {
       if (!c || !c.name) continue; // murky/unnamed → skip (honest)
-      // The one documented belligerent pointer on a campaign is `rival` (the
-      // opposing state id). start/end are years, not links — never treat as such.
-      const belligerents = [ref("state", s.i), ref("state", c.rival)].filter(Boolean);
-      push("event", {
-        id: mint(),
-        name: c.name,
-        description: `Campaign of ${s.name}.`,
-        supertype: "War",
-        start_date: Number.isFinite(c.start) ? c.start : null,
-        end_date: Number.isFinite(c.end) ? c.end : null,
-        institutions: belligerents,
-        x_azgaar_type: "campaign",
-        x_azgaar_state: s.i,
-      });
+      const key = JSON.stringify([c.name, c.start ?? null, c.end ?? null, c.attacker ?? null, c.defender ?? null]);
+      const prior = campaignsSeen.get(key);
+      if (prior) {
+        prior.owners.push(s);
+        continue;
+      }
+      campaignsSeen.set(key, { c, owners: [s] });
     }
+  }
+  for (const { c, owners } of campaignsSeen.values()) {
+    const attacker = keptStates.find((s) => s.i === c.attacker);
+    const defender = keptStates.find((s) => s.i === c.defender);
+    const belligerents = [
+      ...new Set(
+        [
+          ref("state", c.attacker),
+          ref("state", c.defender),
+          ref("state", c.rival), // legacy field, pre-attacker/defender exports
+          ...owners.map((s) => ref("state", s.i)),
+        ].filter(Boolean)
+      ),
+    ];
+    const description =
+      attacker && defender
+        ? `War between ${attacker.name} and ${defender.name}.`
+        : `Campaign of ${owners.map((s) => s.name).join(", ")}.`;
+    push("event", {
+      id: mint(),
+      name: c.name,
+      description,
+      supertype: "War",
+      start_date: Number.isFinite(c.start) ? c.start : null,
+      end_date: Number.isFinite(c.end) ? c.end : null,
+      institutions: belligerents,
+      x_azgaar_type: "campaign",
+      x_azgaar_state: owners[0].i,
+      ...(owners.length > 1 ? { x_azgaar_states: owners.map((s) => s.i) } : {}),
+    });
   }
 
   // --- provinces → Location -------------------------------------------------
@@ -321,6 +370,7 @@ export function mapAzgaar(map, opts = {}) {
       x_azgaar_population_raw: b.population ?? null,
       x_azgaar_x: b.x ?? null,
       x_azgaar_y: b.y ?? null,
+      x_azgaar_coa: b.coa && typeof b.coa === "object" ? b.coa : null,
     });
   }
 
