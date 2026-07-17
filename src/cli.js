@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * azgaar-to-world — convert an Azgaar Fantasy Map Generator JSON export (.map
+ * azgaar-converter — convert an Azgaar Fantasy Map Generator JSON export (.map
  * saved as JSON, or the Full/Minimal .json export) into an OnlyWorlds world
  * folder and/or a POST /api/v2/bulk payload.
  *

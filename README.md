@@ -1,6 +1,10 @@
-# azgaar-to-world
+# azgaar-converter
 
 Convert an **[Azgaar Fantasy Map Generator](https://azgaar.github.io/Fantasy-Map-Generator/)** JSON export into an **OnlyWorlds world**: a typed constellation of states, provinces, burgs, cultures, religions, rivers and landmarks instead of one flat map file. Your generated map already *is* a world — this gives it OnlyWorlds bones you can open in Atlas, sync to Obsidian, or query over the API.
+
+> **New to OnlyWorlds?** It is an open standard for worldbuilding data: 22 typed element categories (Character, Location, Institution, Event, …) with defined fields and relationships, stored as plain files you own. One structure, readable by any tool. See [onlyworlds.com](https://www.onlyworlds.com), the [docs](https://onlyworlds.github.io), and the [schema](https://github.com/OnlyWorlds/OnlyWorlds). Open the result in [Atlas](https://atlas.onlyworlds.com) (the workspace), the [Obsidian plugin](https://github.com/OnlyWorlds/obsidian-plugin), or over the [API](https://www.onlyworlds.com/api/docs).
+>
+> **For AI assistants**: this emits an OnlyWorlds world folder (one JSON file per element, `id` = identity) — or a `/api/v2/bulk` payload. Types and fields are in the [schema repo](https://github.com/OnlyWorlds/OnlyWorlds) and the [LLM guide](https://onlyworlds.github.io/assets/ow_llm_guide.txt). To push a world yourself: mint a key at [onlyworlds.com/account](https://www.onlyworlds.com/account) (`ow_w_` writes) and POST the `--bulk` payload. The converter itself contains no network code.
 
 | Azgaar | OnlyWorlds |
 |---|---|

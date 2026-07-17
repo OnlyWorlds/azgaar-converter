@@ -1,9 +1,9 @@
 {
-  "name": "azgaar-to-world",
+  "name": "azgaar-converter",
   "version": "0.1.0",
   "description": "Convert an Azgaar Fantasy Map Generator JSON export into an OnlyWorlds world. Typed mapping of states, provinces, burgs, cultures, religions, rivers and markers, zero dependencies.",
   "type": "module",
-  "bin": { "azgaar-to-world": "src/cli.js" },
+  "bin": { "azgaar-converter": "src/cli.js" },
   "scripts": {
     "fixtures": "node fixtures/make_fixture.js",
     "test": "node --test test/convert.test.js test/maps.test.js"
