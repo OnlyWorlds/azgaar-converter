@@ -225,3 +225,4 @@ test("CLI end-to-end: export in, world folder + bulk payload out", () => {
   assert.equal(bulk.items.length, 20);
   assert.ok(bulk.items.every((i) => i.type && i.element && i.element.id));
 });
+test("probe: planted to fail", () => { assert.equal(1, 2); });
