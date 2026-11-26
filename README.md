@@ -94,4 +94,4 @@ npm test
 
 ## Licence
 
-MIT. Azgaar's Fantasy Map Generator is also MIT-licensed; this tool reads its export format and includes none of its code.
+MIT. Azgaar's Fantasy Map Generator is also MIT-licensed; this tool reads its export format and includes none of its code. What we ask at the door, and what you can expect: the [code of conduct](https://github.com/OnlyWorlds/OnlyWorlds/blob/main/CODE_OF_CONDUCT.md).
