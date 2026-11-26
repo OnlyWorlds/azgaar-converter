@@ -74,6 +74,7 @@ export function writeMapMedia(dir, media, srcImagePath) {
     id: media.mediaId,
     element_id: media.mapElementId,
     folder: "base-image",
+    filename: media.filename, // the file beside this sidecar, as Atlas writes it
     mime: media.mime,
     size_bytes: sizeBytes,
     added_at: media.addedAt,
