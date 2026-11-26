@@ -35,6 +35,7 @@ import { join } from "node:path";
 import { mapAzgaar } from "./map.js";
 import { writeWorldFolder, writeMapMedia } from "./folder.js";
 import { emitMaps, buildMapMedia } from "./map-element.js";
+import { leftBehind, leftBehindLines } from "./report.js";
 
 function parseArgs(argv) {
   const args = { _: [] };
@@ -117,7 +118,9 @@ if (args.geojsonDir) {
 console.log(`map: ${map.info?.mapName ?? "(unnamed)"} (FMG ${map.info?.version ?? "?"})`);
 const byType = {};
 for (const { type } of items) byType[type] = (byType[type] ?? 0) + 1;
-console.log(`elements: ${items.length} —`, JSON.stringify(byType));
+console.log(`${items.length} elements —`, JSON.stringify(byType));
+// What the export held that this run left behind, said at run time and not only in the README.
+for (const line of leftBehindLines(leftBehind(map, items), { geojsonDir: args.geojsonDir })) console.log(line);
 if (mapsStats) {
   const dropped = mapsStats.verticesIn - mapsStats.verticesOut;
   const pct = mapsStats.verticesIn ? ((dropped / mapsStats.verticesIn) * 100).toFixed(1) : "0.0";

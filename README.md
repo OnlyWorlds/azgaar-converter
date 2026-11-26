@@ -62,6 +62,8 @@ With `--geojson-dir`: a **Map** sized to the image, a **Pin** per burg and per m
 
 ## Not converted
 
+Each run prints what it left behind in your export: every part it never reads, with its size (`not converted: pack.goods (71), pack.deals (6894), …`), and the entries it passed over (removed ones, markers with no note, notes that belong to no marker). The list below says why, and names the fields of a converted entry that are not carried.
+
 - State and province territories (Azgaar exports them only per cell), and everything else it keeps per cell, a cell's `prosperity` and `development` among them: the converter makes no element for a cell.
 - Province parents for burgs other than a province's capital.
 - The economy layer. No OnlyWorlds field holds it, and the converter keeps none of it as raw data:
