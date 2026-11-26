@@ -60,6 +60,10 @@ Every element carries `x_azgaar_id` and `x_azgaar_type`. Data with no OnlyWorlds
 
 With `--geojson-dir`: a **Map** sized to the image, a **Pin** per burg and per marker linked to its Location, and a **Zone** with an ordered chain of **Markers** for each Azgaar zone, river and road. Lines are simplified (the CLI prints how many points it dropped); a zone made of several polygons keeps its largest.
 
+## Names made by the import
+
+Each run also counts the names it made, one line a kind, beside the elements and never in them: an element name that is not one string of your export taken as written. Most are joined, your words with ours between them: a Relation `<state>–<state>: Alliance`, a river's Location `<river> <type>`, the import's Construct `<map> (Azgaar import)`. A few are ours, for a thing your export leaves unnamed (`River <n>`, `Burg <n>`). Every kind is declared in `src/made.js`.
+
 ## Not converted
 
 Each run prints what it left behind in your export: every part it never reads, with its size (`not converted: pack.goods (71), pack.deals (6894), …`), and the entries it passed over (removed ones, markers with no note, notes that belong to no marker). The list below says why, and names the fields of a converted entry that are not carried.

@@ -6,7 +6,7 @@
   "bin": { "azgaar-converter": "src/cli.js" },
   "scripts": {
     "fixtures": "node fixtures/make_fixture.js",
-    "test": "node --test test/convert.test.js test/maps.test.js test/report.test.js"
+    "test": "node --test test/convert.test.js test/maps.test.js test/report.test.js test/made.test.js"
   },
   "license": "MIT",
   "private": false

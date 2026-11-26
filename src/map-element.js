@@ -99,12 +99,14 @@ export function emitMaps(map, coreItems, geojson, opts = {}) {
     x_azgaar_distance_unit: settings.distanceUnit ?? null,
   };
   if (opts.mapImage) mapEl.image_media_id = opts.mapImage.mediaId; // R9
-  items.push({ type: "map", element: strip(mapEl) });
+  items.push({ type: "map", element: strip(mapEl), made: info.mapName ? "map" : "map-unnamed" });
 
   // --- Pins (R8): every kept burg + kept FMG-marker -------------------------
   // We drive off the core Location elements so a pin exists iff its Location does
   // (burg/marker sentinels & removed are already filtered out of coreItems).
-  for (const { element } of coreItems) {
+  // a Pin copies its Location's name, so a made one is made here too (src/made.js)
+  const pinMade = { "burg-unnamed": "pin-burg-unnamed", "marker-unnamed": "pin-marker-unnamed" };
+  for (const { element, made } of coreItems) {
     if (element.x_azgaar_type !== "burg" && element.x_azgaar_type !== "marker") continue;
     // pixel x,y live on the core element as x_azgaar_x / x_azgaar_y
     const xFmg = element.x_azgaar_x;
@@ -113,6 +115,7 @@ export function emitMaps(map, coreItems, geojson, opts = {}) {
     const p = toOwPoint(xFmg, yFmg, height);
     items.push({
       type: "pin",
+      ...(pinMade[made] ? { made: pinMade[made] } : {}),
       element: strip({
         id: mint(),
         name: element.name,
@@ -135,7 +138,7 @@ export function emitMaps(map, coreItems, geojson, opts = {}) {
       return toOwPoint(x, yFmg, height);
     });
 
-  const emitZone = ({ name, role, shape, color, points, cap, azId, azType, locationRef, extra }) => {
+  const emitZone = ({ name, made, role, shape, color, points, cap, azId, azType, locationRef, extra }) => {
     stats.verticesIn += points.length;
     const { points: simplified } = simplifyToCap(points, DP_TOLERANCE, cap);
     stats.verticesOut += simplified.length;
@@ -151,7 +154,7 @@ export function emitMaps(map, coreItems, geojson, opts = {}) {
     if (role) zoneEl.role = role;
     if (locationRef) zoneEl.x_azgaar_location_ref = locationRef; // R6
     if (extra) Object.assign(zoneEl, extra);
-    items.push({ type: "zone", element: strip(zoneEl) });
+    items.push(made ? { type: "zone", element: strip(zoneEl), made } : { type: "zone", element: strip(zoneEl) });
 
     let order = 0;
     for (const pt of simplified) {
@@ -182,6 +185,7 @@ export function emitMaps(map, coreItems, geojson, opts = {}) {
       const props = f.properties ?? {};
       emitZone({
         name: props.name || `Zone ${props.id}`,
+        made: props.name ? null : "zone-unnamed",
         role: props.type || null, // FMG type = role (R5)
         shape: "polygon",
         color: resolveZoneColor(props.color, props.type),
@@ -204,6 +208,7 @@ export function emitMaps(map, coreItems, geojson, opts = {}) {
       const twin = azIndex.get("river", props.id); // river.i === geojson id
       emitZone({
         name: props.name ? `${props.name}${props.type ? ` ${props.type}` : ""}` : `River ${props.id}`,
+        made: !props.name ? "river-zone-unnamed" : props.type ? "river-zone-typed" : null,
         role: "Waterway",
         shape: "line",
         color: "#3b82f6",
@@ -228,6 +233,7 @@ export function emitMaps(map, coreItems, geojson, opts = {}) {
       if (!coords || coords.length < 2) continue;
       emitZone({
         name: props.name || `${labelForRouteGroup(group)} ${props.id}`,
+        made: props.name ? null : "route-unnamed",
         role: "Road",
         shape: "line",
         color: "#a16207",

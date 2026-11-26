@@ -36,6 +36,7 @@ import { mapAzgaar } from "./map.js";
 import { writeWorldFolder, writeMapMedia } from "./folder.js";
 import { emitMaps, buildMapMedia } from "./map-element.js";
 import { leftBehind, leftBehindLines } from "./report.js";
+import { madeCounts, madeLines } from "./made.js";
 
 function parseArgs(argv) {
   const args = { _: [] };
@@ -121,6 +122,7 @@ for (const { type } of items) byType[type] = (byType[type] ?? 0) + 1;
 console.log(`${items.length} elements —`, JSON.stringify(byType));
 // What the export held that this run left behind, said at run time and not only in the README.
 for (const line of leftBehindLines(leftBehind(map, items), { geojsonDir: args.geojsonDir })) console.log(line);
+for (const line of madeLines(madeCounts(items))) console.log(line);
 if (mapsStats) {
   const dropped = mapsStats.verticesIn - mapsStats.verticesOut;
   const pct = mapsStats.verticesIn ? ((dropped / mapsStats.verticesIn) * 100).toFixed(1) : "0.0";

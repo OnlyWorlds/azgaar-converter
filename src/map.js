@@ -143,13 +143,16 @@ export function mapAzgaar(map, opts = {}) {
   for (const m of keptMarkers) mintFor("marker", m.i);
 
   const out = [];
-  const push = (type, element) => out.push({ type, element: strip(element) });
+  // `__made` names the kind of a made name (src/made.js); it is lifted off the element and kept beside it.
+  const push = (type, { __made, ...element }) =>
+    out.push(__made ? { type, element: strip(element), made: __made } : { type, element: strip(element) });
 
   // --- import-record Construct (one) ----------------------------------------
   const mapName = info.mapName || "Azgaar Map";
   push("construct", {
     id: mint(),
     name: `${mapName} (Azgaar import)`,
+    __made: info.mapName ? "import-record" : "import-record-unnamed",
     description: [
       `Import record for the Azgaar Fantasy Map Generator export "${mapName}".`,
       info.seed ? `Seed: ${info.seed}.` : null,
@@ -205,6 +208,7 @@ export function mapAzgaar(map, opts = {}) {
     push("institution", {
       id: ref("state", s.i),
       name: s.name || `State ${s.i}`,
+      __made: s.name ? null : "state-unnamed",
       description: desc,
       supertype: s.form || "",
       subtype: s.formName || "",
@@ -259,6 +263,7 @@ export function mapAzgaar(map, opts = {}) {
       push("relation", {
         id: mint(),
         name: label,
+        __made: "diplomacy",
         institutions: links,
         x_azgaar_type: "diplomacy",
         x_azgaar_status: isVassalage ? "Vassalage" : raw,
@@ -324,6 +329,7 @@ export function mapAzgaar(map, opts = {}) {
     push("location", {
       id: ref("province", p.i),
       name: p.fullName || p.name || `Province ${p.i}`,
+      __made: p.fullName || p.name ? null : "province-unnamed",
       description: stateName ? `Administrative region of ${stateName}.` : "",
       supertype: "Administrative Region",
       subtype: p.formName || "",
@@ -368,6 +374,7 @@ export function mapAzgaar(map, opts = {}) {
     push("location", {
       id: ref("burg", b.i),
       name: b.name || `Burg ${b.i}`,
+      __made: b.name ? null : "burg-unnamed",
       description: desc,
       supertype: "Settlement",
       subtype,
@@ -393,6 +400,7 @@ export function mapAzgaar(map, opts = {}) {
     push("collective", {
       id: ref("culture", c.i),
       name: c.name || `Culture ${c.i}`,
+      __made: c.name ? null : "culture-unnamed",
       description: ancestry ? `Ancestry: ${ancestry}.` : "",
       supertype: "Culture",
       subtype: c.type || "",
@@ -410,6 +418,7 @@ export function mapAzgaar(map, opts = {}) {
     push("institution", {
       id: ref("religion", r.i),
       name: r.name || `Religion ${r.i}`,
+      __made: r.name ? null : "religion-unnamed",
       description: descBits.join(" "),
       supertype: "Religion",
       subtype: r.type || "",
@@ -430,6 +439,7 @@ export function mapAzgaar(map, opts = {}) {
     push("location", {
       id: ref("river", r.i),
       name: r.name ? `${r.name}${r.type ? ` ${r.type}` : ""}` : `River ${r.i}`,
+      __made: !r.name ? "river-unnamed" : r.type ? "river-typed" : null,
       description: descBits.join(" "),
       supertype: "Waterway",
       subtype: r.type || "",
@@ -446,6 +456,7 @@ export function mapAzgaar(map, opts = {}) {
     push("location", {
       id: idOf.get(key("marker", m.i)), // not ref(): for a marker, id 0 is no sentinel
       name: note.name || m.type || `Marker ${m.i}`,
+      __made: note.name || m.type ? null : "marker-unnamed",
       description: htmlToText(note.legend),
       supertype: "Landmark",
       subtype: m.type || "Marker",
