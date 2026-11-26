@@ -13,8 +13,10 @@
  *   - rivers / markers: unordered — key off `.i`, never array position.
  *   - anything with `removed: true` is filtered out.
  *   - burg.port is 0 (not a port) or a water-feature id (a port) — NOT a boolean.
- *   - markers pair with notes by id convention (note.id === "marker" + marker.i);
- *     only markers WITH a matching note become elements.
+ *   - only markers WITH a note become elements. An older export pairs a marker with
+ *     the top-level `notes` list by id convention (note.id === "marker" + marker.i);
+ *     a newer export (seen on FMG 1.158.0) has no `notes` list and keeps `name` and
+ *     `note` on the marker.
  *
  * Every element carries x_azgaar_id + x_azgaar_type provenance. Unmapped Azgaar
  * data rides x_azgaar_* extensions — nothing destroyed. Cross-references
@@ -119,7 +121,17 @@ export function mapAzgaar(map, opts = {}) {
   const keptRivers = keyed(rivers);
   // Notes keyed by their string id for marker pairing.
   const noteById = new Map(notes.map((n) => [String(n.id), n]));
-  const keptMarkers = keyed(markers).filter((m) => noteById.has(`marker${m.i}`));
+  // A marker's note: an older export keeps it in the top-level `notes` list, paired by id
+  // ("marker" + marker.i, with `name` and `legend`); a newer one has no such list and keeps
+  // `name` and `note` on the marker itself.
+  const noteOf = (m) => {
+    const paired = noteById.get(`marker${m.i}`);
+    if (paired) return { name: paired.name, legend: paired.legend };
+    if (typeof m.note === "string" && m.note !== "") return { name: m.name, legend: m.note };
+    return null;
+  };
+  // Markers have no reserved slot: their ids start at 0, and marker 0 is a marker like any other.
+  const keptMarkers = markers.filter((m) => m && alive(m) && noteOf(m) !== null);
 
   // --- pass 1: mint ids so cross-references resolve --------------------------
   for (const c of keptCultures) mintFor("culture", c.i);
@@ -376,14 +388,17 @@ export function mapAzgaar(map, opts = {}) {
 
   // --- cultures → Collective ------------------------------------------------
   for (const c of keptCultures) {
+    // optional: Azgaar gives a culture an ancestry ("Elfish", "Dwarven") in some culture sets
+    const ancestry = typeof c.ancestry === "string" && c.ancestry !== "" ? c.ancestry : null;
     push("collective", {
       id: ref("culture", c.i),
       name: c.name || `Culture ${c.i}`,
-      description: "",
+      description: ancestry ? `Ancestry: ${ancestry}.` : "",
       supertype: "Culture",
       subtype: c.type || "",
       x_azgaar_id: c.i,
       x_azgaar_type: "culture",
+      x_azgaar_ancestry: ancestry,
     });
   }
 
@@ -427,11 +442,11 @@ export function mapAzgaar(map, opts = {}) {
 
   // --- markers (with note) → Location ---------------------------------------
   for (const m of keptMarkers) {
-    const note = noteById.get(`marker${m.i}`);
+    const note = noteOf(m);
     push("location", {
-      id: ref("marker", m.i),
-      name: (note && note.name) || m.type || `Marker ${m.i}`,
-      description: htmlToText(note && note.legend),
+      id: idOf.get(key("marker", m.i)), // not ref(): for a marker, id 0 is no sentinel
+      name: note.name || m.type || `Marker ${m.i}`,
+      description: htmlToText(note.legend),
       supertype: "Landmark",
       subtype: m.type || "Marker",
       x_azgaar_id: m.i,

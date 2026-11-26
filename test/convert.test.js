@@ -225,3 +225,113 @@ test("CLI end-to-end: export in, world folder + bulk payload out", () => {
   assert.equal(bulk.items.length, 20);
   assert.ok(bulk.items.every((i) => i.type && i.element && i.element.id));
 });
+
+// --- a real export in the newer shape -------------------------------------------------------
+// fixtures/real/raroia-minimal-fmg-1.158.0.json is Azgaar's own Minimal JSON export of a map it
+// generated with its High Fantasy culture set, saved as downloaded (fixtures/real/README.md).
+
+const REAL = join(here, "..", "fixtures", "real", "raroia-minimal-fmg-1.158.0.json");
+const loadReal = () => JSON.parse(readFileSync(REAL, "utf8"));
+const kindCounts = (items) => {
+  const out = {};
+  for (const { element } of items) out[element.x_azgaar_type] = (out[element.x_azgaar_type] ?? 0) + 1;
+  return out;
+};
+
+test("the real fixture is the newer shape: no notes list, finances under state.economy, deals as rows", () => {
+  const map = loadReal();
+  assert.equal(map.info.version, "1.158.0");
+  assert.equal("notes" in map, false);
+  const states = map.pack.states.slice(1);
+  assert.equal(states.length, 21);
+  assert.ok(states.every((s) => s.economy && typeof s.economy.salesTax === "number"));
+  assert.ok(states.every((s) => !("salesTax" in s) && !("pollTax" in s) && !("treasury" in s)));
+  assert.ok(map.pack.deals.length > 0 && map.pack.deals.every((d) => Array.isArray(d) && d.length === 9));
+  assert.equal(map.pack.cultures.filter((c) => c.ancestry).length, 11);
+  assert.equal(map.pack.markers.filter((m) => m.note).length, 82);
+});
+
+test("a real newer export converts: every state, province, burg, culture, religion, river and marker", () => {
+  const map = loadReal();
+  const items = mapAzgaar(map, { mintId: seq() });
+  assert.deepEqual(kindCounts(items), {
+    map: 1,
+    state: 21,
+    diplomacy: 48,
+    campaign: 85,
+    province: 159,
+    burg: 559,
+    culture: 11,
+    religion: 13,
+    river: 154,
+    marker: 82,
+  });
+  assert.equal(items.length, 1133);
+  assert.equal(new Set(items.map((i) => i.element.id)).size, 1133);
+  assert.ok(items.every((i) => typeof i.element.id === "string" && i.element.id !== ""));
+});
+
+test("a culture's ancestry is carried, in the description and as x_azgaar_ancestry", () => {
+  const map = loadReal();
+  const cultures = mapAzgaar(map, { mintId: seq() })
+    .map((i) => i.element)
+    .filter((e) => e.x_azgaar_type === "culture");
+  for (const c of cultures) {
+    const source = map.pack.cultures[c.x_azgaar_id];
+    assert.equal(c.x_azgaar_ancestry, source.ancestry);
+    assert.equal(c.description, `Ancestry: ${source.ancestry}.`);
+  }
+  assert.equal(cultures.find((c) => c.name === "Quenian").x_azgaar_ancestry, "Elfish");
+
+  // a culture without one (every culture of an older export) gets neither
+  const older = mapAzgaar(loadFixture(), { mintId: seq() })
+    .map((i) => i.element)
+    .filter((e) => e.x_azgaar_type === "culture");
+  assert.equal(older.length, 2);
+  for (const c of older) {
+    assert.equal("x_azgaar_ancestry" in c, false);
+    assert.equal("description" in c, false);
+  }
+});
+
+test("a newer export's marker carries its own name and note, and marker 0 is a marker", () => {
+  const map = loadReal();
+  const markers = mapAzgaar(map, { mintId: seq() })
+    .map((i) => i.element)
+    .filter((e) => e.x_azgaar_type === "marker");
+  assert.equal(markers.length, 82);
+  for (const m of markers) {
+    const source = map.pack.markers.find((x) => x.i === m.x_azgaar_id);
+    assert.equal(m.name, source.name);
+    assert.equal(m.description, htmlToText(source.note));
+    assert.equal(m.supertype, "Landmark");
+  }
+  const first = markers.find((m) => m.x_azgaar_id === 0);
+  assert.equal(first.name, "Manchfield Volcano");
+  assert.equal(first.description, "Erupting volcano. Height: 17967ft.");
+
+  // a newer marker without a note is still no element
+  const bare = loadReal();
+  delete bare.pack.markers[0].note;
+  assert.equal(kindCounts(mapAzgaar(bare, { mintId: seq() })).marker, 81);
+
+  // the older shape keeps marker 0 too, paired with its note in the notes list
+  const older = loadFixture();
+  older.pack.markers.push({ i: 0, type: "Tower", x: 10, y: 10 });
+  older.notes.push({ id: "marker0", name: "The Zero Tower", legend: "<p>First of its kind.</p>" });
+  const zero = mapAzgaar(older, { mintId: seq() })
+    .map((i) => i.element)
+    .find((e) => e.x_azgaar_type === "marker" && e.x_azgaar_id === 0);
+  assert.equal(zero.name, "The Zero Tower");
+  assert.equal(zero.description, "First of its kind.");
+  assert.equal(typeof zero.id, "string");
+});
+
+test("nothing of the economy layer is written, from a real newer export", () => {
+  const items = mapAzgaar(loadReal(), { mintId: seq() });
+  const economy = /econom|tax|treasury|tariff|prosperity|development|adjustments|production|market|deal|goods/i;
+  const keys = new Set();
+  for (const { element } of items) for (const k of Object.keys(element)) keys.add(k);
+  assert.ok(keys.size > 20);
+  assert.deepEqual([...keys].filter((k) => economy.test(k)), []);
+});

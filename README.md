@@ -48,7 +48,7 @@ node src/cli.js my-map.json --out ./my-world --geojson-dir ./exports --map-image
 | campaign | **Event** with `supertype` War, linked to its states |
 | province | **Location**, `supertype` Administrative Region, `primary_power` its state |
 | burg | **Location**, `supertype` Settlement, `subtype` Capital, Port, City, Town or Village; linked to its state and culture |
-| culture | **Collective**, `supertype` Culture |
+| culture | **Collective**, `supertype` Culture; its ancestry (Elfish, Dwarven…), where the export gives one, in the description and `x_azgaar_ancestry` |
 | religion | **Institution**, `supertype` Religion; the deity in the description and `x_azgaar_deity` |
 | river | **Location**, `supertype` Waterway |
 | marker with a note | **Location**, `supertype` Landmark; the note as plain-text description |
@@ -62,10 +62,24 @@ With `--geojson-dir`: a **Map** sized to the image, a **Pin** per burg and per m
 
 ## Not converted
 
-- State and province territories (Azgaar exports them only per cell).
+- State and province territories (Azgaar exports them only per cell), and everything else it keeps per cell, a cell's `prosperity` and `development` among them: the converter makes no element for a cell.
 - Province parents for burgs other than a province's capital.
-- The economy layer (goods, markets, deals) and name bases.
+- The economy layer. No OnlyWorlds field holds it, and the converter keeps none of it as raw data:
+  - goods, markets and deals, a deal's `tariff` with them;
+  - a state's finances, which a newer export keeps under `economy` (tax rates, tariffs, budget, treasury);
+  - a burg's `treasury`, `production`, `pollTaxPaid` and `adjustments`;
+  - a culture's `development`.
+- Name bases.
 - Deities stay text. To turn them into Character elements, run a pass with the [OnlyWorlds toolkit](https://github.com/OnlyWorlds/toolkit).
+
+## Azgaar versions
+
+Azgaar's export has no schema and changes with the generator. The tests hold the converter to two shapes:
+
+- an export of generator 1.158.0 (November 2026), kept as downloaded in `fixtures/real/`: no top-level `notes` list, a marker carries its own name and note, a state's finances sit under `economy`;
+- the older shape, where a marker's name and note come from the top-level `notes` list (`fixtures/azgaar-export.json`, made by hand).
+
+Both are read. If an export of yours loses something the tables above promise, please open an issue and say which generator version wrote it (the converter prints it).
 
 ## Push to onlyworlds.com
 
